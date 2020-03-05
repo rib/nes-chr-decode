@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+# Copyright 2020 Robert Bragg robert@sixbynine.org
 # Copyright 2018 Kalle qalle85@gmail.com
 #
 # This program is free software: you can redistribute it and/or modify
@@ -18,7 +19,7 @@
 # Original source:
 # https://github.com/play3577/nes-chr-decode
 
-import getopt
+import argparse
 import os.path
 import png
 import sys
@@ -45,27 +46,36 @@ def decode_color_code(color):
     return (red, green, blue)
 
 def parse_arguments():
-    """Parse command line arguments using getopt."""
+    """Parse command line arguments using argparse."""
 
-    longOpts = ("color0=", "color1=", "color2=", "color3=")
-    try:
-        (opts, args) = getopt.getopt(sys.argv[1:], "", longOpts)
-    except getopt.GetoptError:
-        exit("Error: invalid option. See the readme file.")
+    parser = argparse.ArgumentParser(description='Converts an NES CHR (graphics) data file to a PNG file.')
+    parser.add_argument('--color0',
+                        default=DEFAULT_PALETTE[0],
+                        help='What color in the PNG image should correspond to color 0 in the CHR data.')
+    parser.add_argument('--color1',
+                        default=DEFAULT_PALETTE[1],
+                        help='What color in the PNG image should correspond to color 1 in the CHR data.')
+    parser.add_argument('--color2',
+                        default=DEFAULT_PALETTE[2],
+                        help='What color in the PNG image should correspond to color 2 in the CHR data.')
+    parser.add_argument('--color3',
+                        default=DEFAULT_PALETTE[3],
+                        help='What color in the PNG image should correspond to color 3 in the CHR data.')
+    parser.add_argument('input_file',
+                        help='The PNG image file to read')
+    parser.add_argument('output_file',
+                        help='The NES CHR data file to write')
 
-    if len(args) != 2:
-        exit("Error: invalid number of arguments. See the readme file.")
-
-    opts = dict(opts)
+    args = parser.parse_args()
 
     # colors
-    color0 = decode_color_code(opts.get("--color0", DEFAULT_PALETTE[0]))
-    color1 = decode_color_code(opts.get("--color1", DEFAULT_PALETTE[1]))
-    color2 = decode_color_code(opts.get("--color2", DEFAULT_PALETTE[2]))
-    color3 = decode_color_code(opts.get("--color3", DEFAULT_PALETTE[3]))
+    color0 = decode_color_code(args.color0)
+    color1 = decode_color_code(args.color1)
+    color2 = decode_color_code(args.color2)
+    color3 = decode_color_code(args.color3)
 
     # source file
-    source = args[0]
+    source = args.input_file
     if not os.path.isfile(source):
         exit("Error: the input file does not exist.")
     try:
@@ -77,7 +87,7 @@ def parse_arguments():
         exit("Error: invalid input file size.")
 
     # target file
-    target = args[1]
+    target = args.output_file
     if os.path.exists(target):
         exit("Error: the output file already exists.")
     dir = os.path.dirname(target)
